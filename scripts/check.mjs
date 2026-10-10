@@ -26,7 +26,19 @@ async function getRetry(url) {
 
 const rate = (r, ok) => (!ok ? 'down' : r.ms > SLOW_MS ? 'slow' : 'up');
 
-const [site, app] = await Promise.all([getRetry('https://passst.com/'), getRetry('https://app.passst.com/api/health')]);
+// Bestell-Schnittstelle: Der Browser-Vorabruf von passst.com muss mit 204 beantwortet werden (Route erreichbar, Bestellung eingerichtet)
+async function orderProbe() {
+  const t0 = Date.now();
+  const res = await fetch('https://app.passst.com/api/checkout', { method: 'OPTIONS', signal: AbortSignal.timeout(TIMEOUT_MS), headers: { 'User-Agent': 'passst-status/1.0', Origin: 'https://passst.com', 'Access-Control-Request-Method': 'POST' } });
+  return { status: res.status, ms: Date.now() - t0 };
+}
+async function orderRetry() {
+  try { const r = await orderProbe(); if (r.status === 204) return r; } catch { /* nochmals */ }
+  await new Promise((r) => setTimeout(r, 4000));
+  try { return await orderProbe(); } catch { return { status: 0, ms: TIMEOUT_MS }; }
+}
+
+const [site, app, order] = await Promise.all([getRetry('https://passst.com/'), getRetry('https://app.passst.com/api/health'), orderRetry()]);
 let health = null;
 try { health = JSON.parse(app.text); } catch { /* keine gültige Antwort */ }
 
@@ -34,6 +46,7 @@ const components = {
   website: { status: rate(site, site.status >= 200 && site.status < 400), ms: site.ms },
   app: { status: rate(app, app.status === 200 && health?.ok === true), ms: app.ms },
   db: { status: health?.db ? (health.db.ok ? 'up' : 'down') : 'unknown', ms: app.ms },
+  order: { status: order.status === 204 ? (order.ms > SLOW_MS ? 'slow' : 'up') : 'down', ms: order.ms },
   mail: { status: health?.mail && health.mail.enabled && health.mail.ok !== null ? (health.mail.ok ? 'up' : 'down') : 'unknown', ms: app.ms },
 };
 // Ist die App nicht erreichbar, ist über Datenbank und Mail nichts bekannt

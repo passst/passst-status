@@ -23,4 +23,4 @@
 ]
 ```
 
-`status`: `investigating`, `identified`, `monitoring`, `maintenance`, `resolved`. Ist `end` leer und der Status nicht `resolved`, gilt die Meldung als aktuell. Komponenten: `website`, `app`, `db`, `mail`.
+`status`: `investigating`, `identified`, `monitoring`, `maintenance`, `resolved`. Ist `end` leer und der Status nicht `resolved`, gilt die Meldung als aktuell. Komponenten: `website`, `app`, `db`, `order`, `mail`.
