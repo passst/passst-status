@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Passst Status</title>
+<meta name="description" content="Aktueller Betriebszustand von Passst: Website, App, Datenbank und Mail-Versand.">
+<meta name="theme-color" content="#0b151c">
+<link rel="icon" href="brand/signet.svg" type="image/svg+xml">
+<style>
+@font-face { font-family: "Montserrat"; src: url("fonts/montserrat.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+:root {
+  --bg: #f2f1ee; --panel: #fff; --ink: #0b151c; --muted: #55626a; --line: #e3e4e1;
+  --ok: #2f8f84; --ok-bg: #e3f2f0; --ok-ink: #14574f;
+  --warn: #d99a00; --warn-bg: #fff4d6; --warn-ink: #6b4e00;
+  --bad: #c8372d; --bad-bg: #fde2e1; --bad-ink: #8c1d18;
+  --none: #d5d8d6; --link: #1b6f66;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #07141b; --panel: #0d212c; --ink: #e8f1f1; --muted: #93a9b1; --line: #1d3a47;
+    --ok: #3ba89e; --ok-bg: #123340; --ok-ink: #a6e3da;
+    --warn: #e0b13a; --warn-bg: #3b3115; --warn-ink: #f3d78a;
+    --bad: #e0675e; --bad-bg: #4a1f1d; --bad-ink: #ffb4ae;
+    --none: #2a4350; --link: #6fcfc2;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+a { color: var(--link); }
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+header { background: var(--panel); border-bottom: 1px solid var(--line); }
+header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; padding-bottom: 16px; }
+header img { height: 30px; width: auto; display: block; }
+header a.back { font-size: 14px; text-decoration: none; }
+header a.back:hover { text-decoration: underline; }
+h1 { font-size: 15px; font-weight: 600; margin: 0; color: var(--muted); letter-spacing: .02em; }
+main { padding: 28px 0 48px; }
+.banner { border-radius: 14px; padding: 22px 22px; display: flex; gap: 16px; align-items: center; border: 1px solid transparent; }
+.banner .dot { flex: none; width: 14px; height: 14px; border-radius: 50%; }
+.banner h2 { margin: 0; font-size: 22px; line-height: 1.25; }
+.banner p { margin: 2px 0 0; font-size: 14px; }
+.banner.ok { background: var(--ok-bg); color: var(--ok-ink); } .banner.ok .dot { background: var(--ok); }
+.banner.warn { background: var(--warn-bg); color: var(--warn-ink); } .banner.warn .dot { background: var(--warn); }
+.banner.bad { background: var(--bad-bg); color: var(--bad-ink); } .banner.bad .dot { background: var(--bad); }
+.banner.none { background: var(--panel); color: var(--muted); border-color: var(--line); } .banner.none .dot { background: var(--none); }
+section { margin-top: 32px; }
+section > h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin: 0 0 10px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.comp { padding: 16px 18px; border-top: 1px solid var(--line); }
+.comp:first-child { border-top: 0; }
+.comp .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.comp .name { font-weight: 600; }
+.comp .desc { color: var(--muted); font-size: 13px; margin-top: 1px; }
+.pill { font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+.pill.up { background: var(--ok-bg); color: var(--ok-ink); }
+.pill.slow { background: var(--warn-bg); color: var(--warn-ink); }
+.pill.down { background: var(--bad-bg); color: var(--bad-ink); }
+.pill.unknown { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.bars { display: flex; gap: 2px; margin-top: 12px; height: 30px; }
+.bars i { flex: 1; min-width: 0; border-radius: 2px; background: var(--none); }
+.bars i.g { background: var(--ok); } .bars i.y { background: var(--warn); } .bars i.r { background: var(--bad); }
+.legend { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.inc { padding: 16px 18px; border-top: 1px solid var(--line); }
+.inc:first-child { border-top: 0; }
+.inc h4 { margin: 0; font-size: 16px; }
+.inc .meta { font-size: 13px; color: var(--muted); margin: 2px 0 8px; }
+.inc ul { list-style: none; margin: 0; padding: 0; }
+.inc li { font-size: 14px; padding-left: 0; margin-top: 6px; }
+.inc li time { color: var(--muted); margin-right: 6px; font-size: 13px; }
+.tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-right: 6px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.tag.wartung { background: var(--warn-bg); color: var(--warn-ink); border-color: transparent; }
+.tag.offen { background: var(--bad-bg); color: var(--bad-ink); border-color: transparent; }
+.tag.ok { background: var(--ok-bg); color: var(--ok-ink); border-color: transparent; }
+.empty { padding: 16px 18px; color: var(--muted); font-size: 14px; }
+footer { border-top: 1px solid var(--line); background: var(--panel); }
+footer .wrap { padding-top: 18px; padding-bottom: 18px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.stale { margin-top: 12px; font-size: 14px; background: var(--warn-bg); color: var(--warn-ink); border-radius: 10px; padding: 10px 14px; }
+noscript p { padding: 16px; }
+@media (max-width: 480px) { .banner h2 { font-size: 19px; } .bars { height: 26px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <picture><source srcset="brand/wordmark-dark.svg" media="(prefers-color-scheme: dark)"><img src="brand/wordmark.svg" alt="Passst" width="127" height="30"></picture>
+    <a class="back" href="https://passst.com/">Zur Website</a>
+  </div>
+</header>
+<main class="wrap">
+  <h1>Betriebsstatus</h1>
+  <div id="banner" class="banner none" role="status" aria-live="polite" style="margin-top:10px">
+    <span class="dot" aria-hidden="true"></span>
+    <div><h2 id="bannerTitle">Status wird geladen …</h2><p id="bannerSub"></p></div>
+  </div>
+  <div id="stale" class="stale" hidden></div>
+
+  <section aria-labelledby="hComp">
+    <h3 id="hComp">Dienste</h3>
+    <div class="card" id="comps"></div>
+  </section>
+
+  <section aria-labelledby="hNow">
+    <h3 id="hNow">Aktuelle Meldungen</h3>
+    <div class="card" id="incNow"></div>
+  </section>
+
+  <section aria-labelledby="hPast">
+    <h3 id="hPast">Vergangene Meldungen (30 Tage)</h3>
+    <div class="card" id="incPast"></div>
+  </section>
+  <noscript><p>Diese Seite braucht JavaScript, um den aktuellen Stand anzuzeigen. Bei Problemen erreichen Sie uns unter <a href="https://passst.com/">passst.com</a>.</p></noscript>
+</main>
+<footer>
+  <div class="wrap">
+    <span id="checked">Automatische Prüfung alle 5 Minuten.</span>
+    <span><a href="https://passst.com/">passst.com</a></span>
+  </div>
+</footer>
+<script>
+(function () {
+  var COMPS = [
+    { id: 'website', name: 'Unternehmens-Website', desc: 'passst.com' },
+    { id: 'app', name: 'Passst-App', desc: 'app.passst.com: Anmeldung, Bearbeiten, KI-Anbindung (MCP)' },
+    { id: 'db', name: 'Datenbank', desc: 'Speicherung von Konten, Websites und Einstellungen' },
+    { id: 'mail', name: 'Mail-Versand', desc: 'Einladungen, Bestätigungen und Benachrichtigungen' }
+  ];
+  var LABEL = { up: 'Läuft', slow: 'Langsam', down: 'Gestört', unknown: 'Keine Daten' };
+  var STATE = { investigating: ['Wird untersucht', 'offen'], identified: ['Ursache gefunden', 'offen'], monitoring: ['Wird beobachtet', 'offen'], maintenance: ['Wartung', 'wartung'], resolved: ['Behoben', 'ok'] };
+  var TZ = 'Europe/Vienna';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function fmt(iso) { try { return new Date(iso).toLocaleString('de-AT', { timeZone: TZ, day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso; } }
+  function fmtDay(key) { var p = key.split('-'); return p[2] + '.' + p[1] + '.'; }
+  function load(url) { return fetch(url + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+
+  Promise.all([load('data/current.json').catch(function () { return null; }), load('data/history.json').catch(function () { return { days: {} }; }), load('incidents.json').catch(function () { return []; })])
+    .then(function (r) { render(r[0], r[1], r[2]); });
+
+  function days90() {
+    var out = [], now = new Date();
+    for (var i = 89; i >= 0; i--) { out.push(new Date(now.getTime() - i * 86400000).toISOString().slice(0, 10)); }
+    return out;
+  }
+
+  function render(cur, hist, incs) {
+    var keys = days90();
+    var openInc = incs.filter(function (i) { return i.status !== 'resolved' && !i.end; });
+    var statuses = cur ? COMPS.map(function (c) { return (cur.components[c.id] || {}).status || 'unknown'; }) : [];
+    var anyDown = statuses.indexOf('down') >= 0, anySlow = statuses.indexOf('slow') >= 0, allDown = statuses.length && statuses.every(function (s) { return s === 'down' || s === 'unknown'; }) && statuses.indexOf('down') >= 0;
+    var b = $('banner'), t = $('bannerTitle'), s = $('bannerSub');
+    if (!cur) { b.className = 'banner none'; t.textContent = 'Der aktuelle Stand ist gerade nicht abrufbar.'; s.textContent = 'Bitte laden Sie die Seite in einigen Minuten neu.'; }
+    else if (allDown) { b.className = 'banner bad'; t.textContent = 'Es liegt eine Störung vor.'; s.textContent = 'Wir arbeiten an der Behebung.'; }
+    else if (anyDown) { b.className = 'banner warn'; t.textContent = 'Teilweise Störung.'; s.textContent = 'Einzelne Dienste sind beeinträchtigt, andere laufen normal.'; }
+    else if (anySlow) { b.className = 'banner warn'; t.textContent = 'Alle Dienste laufen, einzelne antworten langsam.'; s.textContent = ''; }
+    else { b.className = 'banner ok'; t.textContent = 'Alle Dienste laufen.'; s.textContent = openInc.length ? 'Es gibt eine aktuelle Meldung (siehe unten).' : ''; }
+
+    if (cur) {
+      var age = (Date.now() - new Date(cur.checked).getTime()) / 60000;
+      $('checked').textContent = 'Letzte Prüfung: ' + fmt(cur.checked) + ' · automatisch alle 5 Minuten';
+      if (age > 20) { var st = $('stale'); st.hidden = false; st.textContent = 'Hinweis: Die letzte Prüfung liegt ' + Math.round(age) + ' Minuten zurück. Die Anzeige kann veraltet sein.'; }
+    }
+
+    var box = $('comps');
+    COMPS.forEach(function (c) {
+      var st = cur ? ((cur.components[c.id] || {}).status || 'unknown') : 'unknown';
+      var row = el('div', 'comp');
+      var top = el('div', 'top');
+      var left = el('div');
+      left.appendChild(el('div', 'name', c.name));
+      left.appendChild(el('div', 'desc', c.desc));
+      top.appendChild(left);
+      top.appendChild(el('span', 'pill ' + st, LABEL[st]));
+      row.appendChild(top);
+      var bars = el('div', 'bars'); bars.setAttribute('role', 'img');
+      var total = 0, okc = 0;
+      keys.forEach(function (k) {
+        var d = hist.days && hist.days[k] && hist.days[k][c.id];
+        var i = el('i');
+        if (d && d.n) {
+          var p = d.ok / d.n * 100; total += d.n; okc += d.ok;
+          i.className = p >= 99.5 ? 'g' : p >= 95 ? 'y' : 'r';
+          i.title = fmtDay(k) + ': ' + (Math.round(p * 10) / 10).toString().replace('.', ',') + ' % verfügbar';
+        } else { i.title = fmtDay(k) + ': keine Daten'; }
+        bars.appendChild(i);
+      });
+      var pct = total ? (Math.floor(okc / total * 1000) / 10).toString().replace('.', ',') + ' % Verfügbarkeit' : 'noch keine Daten';
+      bars.setAttribute('aria-label', c.name + ': ' + pct + ' in den letzten 90 Tagen');
+      row.appendChild(bars);
+      var lg = el('div', 'legend'); lg.appendChild(el('span', null, 'vor 90 Tagen')); lg.appendChild(el('span', null, pct + ' (90 Tage)')); lg.appendChild(el('span', null, 'heute'));
+      row.appendChild(lg);
+      box.appendChild(row);
+    });
+
+    function incBlock(i) {
+      var d = el('div', 'inc');
+      var st = STATE[i.status] || ['Meldung', ''];
+      var h = el('h4'); h.appendChild(el('span', 'tag ' + st[1], st[0])); h.appendChild(document.createTextNode(i.title || ''));
+      d.appendChild(h);
+      var names = (i.components || []).map(function (id) { var c = COMPS.filter(function (x) { return x.id === id; })[0]; return c ? c.name : id; }).join(', ');
+      d.appendChild(el('div', 'meta', fmt(i.start) + (i.end ? ' bis ' + fmt(i.end) : '') + (names ? ' · ' + names : '')));
+      var ul = el('ul');
+      (i.updates || []).slice().sort(function (a, b) { return new Date(b.time) - new Date(a.time); }).forEach(function (u) {
+        var li = el('li'); li.appendChild(el('time', null, fmt(u.time))); li.appendChild(document.createTextNode(u.text || '')); ul.appendChild(li);
+      });
+      d.appendChild(ul);
+      return d;
+    }
+    var now = $('incNow'), past = $('incPast');
+    var cutoff = Date.now() - 30 * 86400000;
+    var cur2 = incs.filter(function (i) { return i.status !== 'resolved' && !i.end; }).sort(function (a, b) { return new Date(b.start) - new Date(a.start); });
+    var old = incs.filter(function (i) { return (i.status === 'resolved' || i.end) && new Date(i.end || i.start).getTime() >= cutoff; }).sort(function (a, b) { return new Date(b.start) - new Date(a.start); });
+    if (cur2.length) cur2.forEach(function (i) { now.appendChild(incBlock(i)); }); else now.appendChild(el('div', 'empty', 'Keine aktuellen Meldungen.'));
+    if (old.length) old.forEach(function (i) { past.appendChild(incBlock(i)); }); else past.appendChild(el('div', 'empty', 'In den letzten 30 Tagen gab es keine Meldungen.'));
+  }
+})();
+</script>
+</body>
+</html>

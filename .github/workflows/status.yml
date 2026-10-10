@@ -1,0 +1,62 @@
+name: Status prüfen und veröffentlichen
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: status
+  cancel-in-progress: false
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Messdaten liegen im Zweig „data“, damit der Hauptzweig sauber bleibt
+      - name: Messdaten holen
+        run: |
+          REMOTE="https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          if git ls-remote --exit-code --heads "$REMOTE" data >/dev/null 2>&1; then
+            git clone --quiet --branch data --single-branch "$REMOTE" data-wt
+          else
+            mkdir data-wt && cd data-wt && git init --quiet -b data && git remote add origin "$REMOTE"
+          fi
+
+      - name: Dienste prüfen
+        run: node scripts/check.mjs data-wt
+
+      - name: Messdaten speichern
+        run: |
+          cd data-wt
+          git config user.name "passst-status"
+          git config user.email "status@passst.com"
+          git add -A
+          git commit --quiet -m "Prüfung $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true
+          git push --quiet origin data || (git pull --rebase --quiet origin data && git push --quiet origin data) || echo "Speichern der Messdaten fehlgeschlagen"
+
+      - name: Seite zusammenbauen
+        run: |
+          mkdir -p _site/data
+          cp index.html incidents.json _site/
+          cp -r brand fonts _site/
+          cp data-wt/current.json data-wt/history.json _site/data/
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
