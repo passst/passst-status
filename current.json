@@ -1,1 +1,1 @@
-{"checked":"2026-10-15T23:48:22.271Z","components":{"website":{"status":"up","ms":1302},"app":{"status":"up","ms":1003},"db":{"status":"up","ms":1003},"order":{"status":"up","ms":998},"mail":{"status":"up","ms":1003}}}
+{"checked":"2026-10-16T01:43:24.748Z","components":{"website":{"status":"up","ms":890},"app":{"status":"up","ms":512},"db":{"status":"up","ms":512},"order":{"status":"up","ms":473},"mail":{"status":"up","ms":512}}}
